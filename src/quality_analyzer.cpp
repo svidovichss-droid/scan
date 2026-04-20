@@ -483,10 +483,10 @@ double QualityAnalyzerImpl::calculateSNR(const cv::Mat& image) {
         gray = image;
     }
     
-    double mean, stddev;
+    cv::Scalar mean, stddev;
     cv::meanStdDev(gray, mean, stddev);
     
-    return mean / (stddev + 1e-6);
+    return mean[0] / (stddev[0] + 1e-6);
 }
 
 double QualityAnalyzerImpl::calculateEdgeSharpness(const cv::Mat& image) {
