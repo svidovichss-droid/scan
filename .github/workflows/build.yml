@@ -14,7 +14,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Install dependencies
       run: |
@@ -51,10 +51,10 @@ jobs:
         Copy-Item ${{ github.workspace }}/vcpkg/installed/x64-windows/bin/*.dll dist\
         
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: DataMatrixScanner-Windows
-        path: dist/DataMatrixScanner.exe
+        path: dist/
         retention-days: 30
 
   build-linux:
@@ -62,7 +62,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Install dependencies
       run: |
@@ -90,10 +90,10 @@ jobs:
         cp build/DataMatrixScanner dist/
         
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: DataMatrixScanner-Linux
-        path: dist/DataMatrixScanner
+        path: dist/
         retention-days: 30
 
   create-release:
@@ -103,22 +103,22 @@ jobs:
     
     steps:
     - name: Download Windows artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: DataMatrixScanner-Windows
         
     - name: Download Linux artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: DataMatrixScanner-Linux
         
     - name: Create release archives
       run: |
-        zip -r DataMatrixScanner-Windows.zip DataMatrixScanner.exe
-        tar -czf DataMatrixScanner-Linux.tar.gz DataMatrixScanner
+        zip -r DataMatrixScanner-Windows.zip .
+        tar -czf DataMatrixScanner-Linux.tar.gz .
         
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           DataMatrixScanner-Windows.zip
