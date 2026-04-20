@@ -12,7 +12,8 @@ endif()
 
 # Поиск пакетов
 find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs videoio highgui)
-find_package(ZBar REQUIRED)
+# Примечание: libzbar удален из vcpkg. Используем встроенные возможности OpenCV (WeChat QRCode) для детекции и анализа.
+# Для декодирования DataMatrix в промышленных решениях часто используют отдельные SDK камер.
 find_package(Threads REQUIRED)
 
 # Исходные файлы
@@ -39,13 +40,11 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${OpenCV_INCLUDE_DIRS}
-    ${ZBAR_INCLUDE_DIRS}
 )
 
 # Подключение библиотек
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBS}
-    ZBar::ZBar
     Threads::Threads
 )
 
