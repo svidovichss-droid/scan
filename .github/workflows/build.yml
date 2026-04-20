@@ -1,0 +1,127 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Install dependencies
+      run: |
+        # Установка vcpkg
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+        
+        # Установка пакетов через vcpkg
+        .\vcpkg install opencv:x64-windows
+        .\vcpkg install libzbar:x64-windows
+        
+    - name: Configure CMake
+      run: |
+        cmake -B build `
+          -S . `
+          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+      
+    - name: Build
+      run: |
+        cmake --build build --config Release --parallel $env:NUMBER_OF_PROCESSORS
+      
+    - name: Create distribution package
+      run: |
+        # Создание директории для дистрибутива
+        New-Item -ItemType Directory -Force -Path dist
+        
+        # Копирование exe файла
+        Copy-Item build\Release\DataMatrixScanner.exe dist\
+        
+        # Копирование необходимых DLL (OpenCV и другие зависимости)
+        Copy-Item ${{ github.workspace }}/vcpkg/installed/x64-windows/bin/*.dll dist\
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: DataMatrixScanner-Windows
+        path: dist/DataMatrixScanner.exe
+        retention-days: 30
+
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          g++ \
+          libopencv-dev \
+          libzbar-dev \
+          libpthread-stubs0-dev
+      
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -S . \
+          -DCMAKE_BUILD_TYPE=Release
+      
+    - name: Build
+      run: |
+        cmake --build build --parallel $(nproc)
+      
+    - name: Create distribution package
+      run: |
+        mkdir -p dist
+        cp build/DataMatrixScanner dist/
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: DataMatrixScanner-Linux
+        path: dist/DataMatrixScanner
+        retention-days: 30
+
+  create-release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Download Windows artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: DataMatrixScanner-Windows
+        
+    - name: Download Linux artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: DataMatrixScanner-Linux
+        
+    - name: Create release archives
+      run: |
+        zip -r DataMatrixScanner-Windows.zip DataMatrixScanner.exe
+        tar -czf DataMatrixScanner-Linux.tar.gz DataMatrixScanner
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          DataMatrixScanner-Windows.zip
+          DataMatrixScanner-Linux.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
