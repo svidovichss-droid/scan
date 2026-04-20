@@ -31,7 +31,11 @@
 - g++ 7+
 - CMake 3.15+
 - OpenCV 4.x
-- ZBar
+
+**Примечание:** Библиотека libzbar удалена из vcpkg и некоторых репозиториев Linux. Для декодирования DataMatrix в промышленном решении рекомендуется использовать:
+1. SDK промышленной камеры (Basler pylon, Cognex, Keyence) - имеют встроенные декодеры
+2. Библиотеку libdmtx: `sudo apt-get install libdmtx-dev` или сборка из исходников
+3. OpenCV WeChat QRCode detector (экспериментальная поддержка DataMatrix в OpenCV 4.+)
 
 ## Установка зависимостей
 
@@ -40,13 +44,17 @@
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
 .\bootstrap-vcpkg.bat
-.\vcpkg install opencv:x64-windows libzbar:x64-windows
+# Примечание: libzbar удален из vcpkg. Используем только OpenCV.
+# Для декодирования DataMatrix используйте SDK камеры или libdmtx.
+.\vcpkg install opencv:x64-windows
 ```
 
 ### Linux (Ubuntu/Debian):
 ```bash
 sudo apt-get update
-sudo apt-get install -y cmake g++ libopencv-dev libzbar-dev libpthread-stubs0-dev
+sudo apt-get install -y cmake g++ libopencv-dev libpthread-stubs0-dev
+# Опционально: установите libdmtx для декодирования DataMatrix
+# sudo apt-get install libdmtx-dev
 ```
 
 ## Сборка

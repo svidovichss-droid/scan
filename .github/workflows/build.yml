@@ -24,8 +24,11 @@ jobs:
         .\bootstrap-vcpkg.bat
         
         # Установка пакетов через vcpkg
+        # Примечание: libzbar удален из vcpkg, используем только OpenCV
+        # Для декодирования DataMatrix в промышленном решении используйте:
+        # 1. SDK камеры (Basler pylon, Cognex) - устанавливаются отдельно
+        # 2. Библиотеку libdmtx (требует ручной сборки)
         .\vcpkg install opencv:x64-windows
-        .\vcpkg install libzbar:x64-windows
         
     - name: Configure CMake
       run: |
@@ -71,8 +74,9 @@ jobs:
           cmake \
           g++ \
           libopencv-dev \
-          libzbar-dev \
           libpthread-stubs0-dev
+        # Примечание: libzbar удален из репозиториев некоторых дистрибутивов
+        # Для декодирования DataMatrix используйте SDK камеры или libdmtx
       
     - name: Configure CMake
       run: |
